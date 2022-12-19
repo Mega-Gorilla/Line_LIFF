@@ -1,106 +1,42 @@
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>筋トレ管理</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rossorigin="anonymous">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css">
+    <title>QR CodeReader</title>
 </head>
 <body>
-
-    <form class="w-75 mx-auto">
-        <p class="mt-3">Name</p>
-        <div>
-            <input class="form-control w-100 mt-1" name="name" placeholder="" required>
-        </div>
-        <p class="mt-3">Check1</p>
-        <div>
-            <input class="form-control w-100 mt-1" name="udetate" required>
-        </div>
-        <p class="mt-3">Ceck2</p>
-        <div>
-            <input class="form-control w-100 mt-1" name="fukkin" required>
-        </div>
-        <p class="mt-3">Check3</p>
-        <div>
-            <input class="form-control w-100 mt-1" name="haikin" required>
-        </div>
-        <p class="mt-3">Check4</p>
-        <div>
-            <input class="form-control w-100 mt-1" name="sukuwat" required>
-        </div>
-        <input type="submit" class="mt-4 btn btn-primary" value="送信">
-        <input type="QRbutton" class="mt-4 btn btn-primary" value="QR_Code">
-        
-    </form>
-
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
-    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="qrscan.js"></script>
     <script>
-
-        $(document).ready(function () {
-            const liffId = "1657751464-8XLP4AoD";
-            initializeLiff(liffId);
-        })
-
-        function initializeLiff(liffId) {
-            liff.init({
-                liffId: liffId
-            }).then(() => {
-                initializeApp();
-            }).catch((err) => {
-                console.log('LIFF Initialization failed ', err);
-            });
-        }
-
-        function sendText(text) {
-            liff.sendMessages([{
-                'type': 'text',
-                'text': text
-            }]).then(function () {
-                liff.closeWindow();
-            }).catch(function (error) {
-                window.alert('Failed to send message ' + error);
-            });
-        }
         
-        function QR_Scan(){
-            const result = "ERROR:QR"
-            liff
-                .scanCodeV2()
-                .then((result) => {
-                result = result.value;
-                })
-                .catch((error) => {
-                console.log("error", error);
-                });
-            return result;
+        window.onload = function() {
+          const defaultLiffId = "1657751464-8XLP4AoD";
+          initializeLiff(defaultLiffId);
+        };
+
+        function initializeLiff(defaultLiffId) {
+          liff
+          .init({
+              liffId: defaultLiffId
+          })
+          .then(() => {
+              liff.scanCodeV2().then(result => {
+                  const stringifiedResult = result.value;
+                  liff.sendMessages([{
+                      'type': 'text',
+                      'text': stringifiedResult
+                  }]).then(() => {
+                      liff.closeWindow();
+                  }).catch((error) => {
+                      window.alert('Error sending message: ' + error);
+                  });
+              }).catch(err => {
+                  window.alert('scanCode failed!');
+              });
+          })
+          .catch((err) => {
+              window.alert('Something went wrong with LIFF initialization.');
+          });
         }
-
-        const params = (new URL(document.location)).searchParams;
-        const key = params.get('key');
-
-        $(function () {
-            $('form').submit(function () {
-                const name    = $('input[name="name"]').val();
-                const udetate = $('input[name="udetate"]').val();
-                const fukkin  = $('input[name="fukkin"]').val();
-                const haikin  = $('input[name="haikin"]').val();
-                const sukuwat = $('input[name="sukuwat"]').val();
-                const msg = `${name}\n${udetate}\n${fukkin}\n${haikin}\n${sukuwat}`;
-                sendText(msg);
-                return false;
-            });
-            $('form').QRbutton(function () {
-                sendText(QR_Scan);
-                return false;
-            });
-        });
-
     </script>
 
 </body>
